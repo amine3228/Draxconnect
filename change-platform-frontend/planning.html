@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MES Planning Intelligent</title>
+<style>
+* { box-sizing: border-box; }
+ 
+body {
+    margin: 0;
+    font-family: Segoe UI, sans-serif;
+    background: #0f172a;
+    color: white;
+}
+ 
+header {
+    padding: 15px;
+    text-align: center;
+    background: #020617;
+    font-size: 22px;
+}
+ 
+.controls {
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+ 
+button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #1e293b;
+    color: white;
+    font-size: 14px;
+}
+button:hover { background: #334155; }
+ 
+/* CALENDRIER */
+.calendar-wrapper { position: relative; display: inline-block; }
+.calendar-trigger {
+    padding: 10px 16px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: white;
+    min-width: 180px;
+    text-align: center;
+    user-select: none;
+}
+.calendar-trigger:hover { background: #334155; }
+.calendar-popup {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+    z-index: 999;
+    width: 300px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.calendar-popup.open { display: block; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav button {
+    background: #0f172a; border: none; color: white; font-size: 18px;
+    width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+    padding: 0; margin: 0; display: flex; align-items: center; justify-content: center;
+}
+.cal-nav button:hover { background: #334155; }
+.cal-month-label { font-size: 15px; font-weight: 600; color: white; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day-header { text-align: center; font-size: 11px; color: #64748b; padding: 4px 0; font-weight: 600; text-transform: uppercase; }
+.cal-day { text-align: center; padding: 6px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #94a3b8; transition: background 0.15s; }
+.cal-day:hover { background: #334155; color: white; }
+.cal-day.empty { cursor: default; pointer-events: none; }
+.cal-day.today { border: 1px solid #3b82f6; color: #93c5fd; }
+.cal-day.selected { background: #3b82f6; color: white; font-weight: 700; }
+.cal-day.has-inprogress { background: #f59e0b; color: #000; font-weight: 700; }
+.cal-day.has-inprogress:hover { background: #d97706; color: #000; }
+.cal-day.selected.has-inprogress { background: #f59e0b; color: #000; outline: 3px solid #3b82f6; outline-offset: 1px; }
+.cal-day.other-month { opacity: 0.25; }
+.cal-legend { display: flex; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #334155; font-size: 11px; color: #94a3b8; justify-content: center; }
+.cal-legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+ 
+/* TABLE */
+.table-container { overflow: auto; padding: 10px; }
+table { border-spacing: 6px; width: 100%; }
+th { background: #1e293b; padding: 6px; white-space: nowrap; }
+td { padding: 6px; border-radius: 6px; cursor: pointer; }
+.task { background: #020617; text-align: left; white-space: nowrap; min-width: 220px; }
+.task-cell { display: flex; align-items: center; gap: 6px; }
+.task-name { flex: 1; font-size: 13px; }
+ 
+.btn-validate-row {
+    padding: 3px 8px; font-size: 11px; background: #16a34a;
+    color: white; border: none; border-radius: 6px; cursor: pointer;
+    white-space: nowrap; margin: 0; flex-shrink: 0;
+}
+.btn-validate-row:hover { background: #15803d; }
+.btn-validate-row:disabled { background: #334155; color: #64748b; cursor: not-allowed; opacity: 0.5; }
+ 
+.btn-delete-task {
+    padding: 3px 7px; font-size: 11px; background: #7f1d1d;
+    color: #fca5a5; border: none; border-radius: 6px; cursor: pointer;
+    white-space: nowrap; margin: 0; flex-shrink: 0;
+}
+.btn-delete-task:hover { background: #991b1b; }
+ 
+.pending    { background: #334155; }
+.inprogress { background: #f59e0b; }
+.done       { background: #22c55e; color: black; }
+ 
+/* MODAL */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65); z-index: 2000;
+    align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 14px; padding: 28px 24px;
+    width: 360px; max-width: 95vw;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    animation: popIn 0.18s ease;
+}
+@keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal h2 { margin: 0 0 20px; font-size: 18px; color: white; text-align: center; }
+.modal label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+.modal input[type="text"],
+.modal input[type="number"] {
+    width: 100%; padding: 10px 12px; background: #0f172a;
+    border: 1px solid #334155; border-radius: 8px; color: white;
+    font-size: 14px; margin-bottom: 16px; outline: none;
+}
+.modal input:focus { border-color: #3b82f6; }
+.modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+.btn-confirm {
+    flex: 1; padding: 10px; background: #3b82f6; color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; margin: 0;
+}
+.btn-confirm:hover { background: #2563eb; }
+.btn-cancel {
+    flex: 1; padding: 10px; background: #334155; color: #94a3b8;
+    border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin: 0;
+}
+.btn-cancel:hover { background: #475569; color: white; }
+ 
+.btn-add-task { background: #1d4ed8; color: white; }
+.btn-add-task:hover { background: #1e40af; }
+</style>
+</head>
+<body>
+ 
+<header>🏭 Planning</header>
+ 
+<div class="controls">
+    <div class="calendar-wrapper" id="calWrapper">
+        <div class="calendar-trigger" onclick="toggleCalendar()">
+            📅 <span id="calLabel">--/--/----</span>
+        </div>
+        <div class="calendar-popup" id="calPopup">
+            <div class="cal-nav">
+                <button onclick="calPrevMonth(event)">&#8249;</button>
+                <span class="cal-month-label" id="calMonthLabel"></span>
+                <button onclick="calNextMonth(event)">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+                <span><span class="cal-legend-dot" style="background:#f59e0b"></span>En cours</span>
+                <span><span class="cal-legend-dot" style="background:#3b82f6"></span>Sélectionné</span>
+                <span><span class="cal-legend-dot" style="border:1px solid #3b82f6;background:transparent"></span>Aujourd'hui</span>
+            </div>
+        </div>
+    </div>
+    <button class="btn-add-task" onclick="openAddTaskModal()">➕ Ajouter tâche</button>
+    <button onclick="resetPage()">♻ Reset</button>
+    <button onclick="openDashboard()">📊 Dashboard</button>
+</div>
+ 
+<div class="table-container">
+    <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+ 
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2>➕ Nouvelle tâche</h2>
+        <label>Nom de la tâche</label>
+        <input type="text" id="newTaskName" placeholder="Ex: Contrôle qualité..." maxlength="60">
+        <label>Durée (nombre de créneaux)</label>
+        <input type="number" id="newTaskDuration" min="1" max="24" value="1">
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeAddTaskModal()">Annuler</button>
+            <button class="btn-confirm" onclick="confirmAddTask()">✔ Ajouter</button>
+        </div>
+    </div>
+</div>
+ 
+<script>
+ 
+// ── CONFIG ────────────────────────────────────────────────────────
+const days  = ["planification du jour"];
+const hours = ["6-7","7-8","8-9","9-10",
+               "10-11","11-12","12-13","13-14",
+               "14-15","15-16","16-17","17-18",
+               "18-19","19-20","20-21","21-22",
+               "22-23","23-0","0-1","1-2",
+               "2-3","3-4","4-5","5-6"];
+ 
+const DEFAULT_TASKS = [
+  {name:"Umbau BB", duration:2},
+  {name:"Alimentation", duration:2},
+  {name:"Verification implantation accessoires", duration:1},
+  {name:"Controle alimentation", duration:1},
+  {name:"Teaching", duration:2},
+  {name:"Control teaching", duration:1},
+  {name:"Control BB", duration:2},
+  {name:"Simulation BGA", duration:1},
+  {name:"Formation des indirects", duration:2},
+  {name:"Formation des directs", duration:2},
+  {name:"Umbau KSK", duration:2},
+  {name:"Changement Barcode et sido IPST", duration:1},
+  {name:"Application Umbau KSK Prod", duration:2},
+  {name:"Control Barcode sido validation", duration:1},
+  {name:"Installation PA", duration:1},
+  {name:"Freigabe", duration:1},
+  {name:"Remplissage New BGA", duration:2},
+  {name:"Production KSK Pseudo Dammy KSK", duration:2},
+  {name:"Umbau table CCMT", duration:2},
+  {name:"Assignation des FP nr", duration:1},
+  {name:"Control Freigabe CCMT", duration:1},
+];
+ 
+// ── CHARGEMENT DONNÉES ───────────────────────────────────────────
+// On force les tâches par défaut si le localStorage est vide ou corrompu
+function loadTasks() {
+    try {
+        let saved = localStorage.getItem("tasks");
+        if (!saved) return DEFAULT_TASKS.map(t => ({...t}));
+        let parsed = JSON.parse(saved);
+        if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TASKS.map(t => ({...t}));
+        return parsed;
+    } catch(e) {
+        return DEFAULT_TASKS.map(t => ({...t}));
+    }
+}
+ 
+function loadData() {
+    try {
+        let saved = localStorage.getItem("planData");
+        if (!saved) return {};
+        return JSON.parse(saved) || {};
+    } catch(e) { return {}; }
+}
+ 
+let tasks       = loadTasks();
+let data        = loadData();
+let currentDate = localStorage.getItem("planDate") || new Date().toISOString().split('T')[0];
+ 
+function saveTasks() { localStorage.setItem("tasks", JSON.stringify(tasks)); }
+function saveData()  { localStorage.setItem("planData", JSON.stringify(data)); }
+ 
+// ── MODAL AJOUTER TÂCHE ──────────────────────────────────────────
+function openAddTaskModal() {
+    document.getElementById("newTaskName").value = "";
+    document.getElementById("newTaskDuration").value = "1";
+    document.getElementById("newTaskName").style.borderColor = "#334155";
+    document.getElementById("modalOverlay").classList.add("open");
+    setTimeout(() => document.getElementById("newTaskName").focus(), 150);
+}
+ 
+function closeAddTaskModal() {
+    document.getElementById("modalOverlay").classList.remove("open");
+}
+ 
+// Fermer si clic en dehors du modal
+document.getElementById("modalOverlay").addEventListener("click", function(e) {
+    if (e.target === this) closeAddTaskModal();
+});
+ 
+function confirmAddTask() {
+    let nameInput = document.getElementById("newTaskName");
+    let name      = nameInput.value.trim();
+    let duration  = parseInt(document.getElementById("newTaskDuration").value) || 1;
+ 
+    if (!name) {
+        nameInput.style.borderColor = "#ef4444";
+        nameInput.focus();
+        return;
+    }
+ 
+    if (tasks.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+        alert("Une tâche avec ce nom existe déjà.");
+        return;
+    }
+ 
+    tasks.push({ name: name, duration: duration });
+    saveTasks();
+    closeAddTaskModal();
+    loadTable();
+}
+ 
+// Supprimer une tâche
+function deleteTask(idx) {
+    let t = tasks[idx];
+    if (!confirm('Supprimer la tâche "' + t.name + '" ?')) return;
+    // Supprimer données liées
+    Object.keys(data).forEach(k => {
+        if (k.indexOf(t.name) !== -1) delete data[k];
+    });
+    tasks.splice(idx, 1);
+    saveTasks();
+    saveData();
+    loadTable();
+}
+ 
+// Raccourcis clavier modal
+document.addEventListener("keydown", function(e) {
+    if (document.getElementById("modalOverlay").classList.contains("open")) {
+        if (e.key === "Enter")  confirmAddTask();
+        if (e.key === "Escape") closeAddTaskModal();
+    }
+});
+ 
+// ── VALIDER TOUTE LA LIGNE ───────────────────────────────────────
+function validateRow(idx) {
+    let t = tasks[idx];
+    let id = prompt("ID opérateur — valider toutes les tâches ⏳ de : " + t.name);
+    if (!id) return;
+ 
+    let count = 0;
+    days.forEach(d => {
+        hours.forEach(hh => {
+            let key = currentDate + "|" + t.name + "|" + d + "|" + hh;
+            if (data[key] && data[key].status === "inprogress") {
+                data[key] = { status: "done", id: "✔ " + id };
+                count++;
+            }
+        });
+    });
+ 
+    if (count === 0) { alert("Aucune cellule ⏳ en cours sur cette ligne."); return; }
+    saveData();
+    loadTable();
+    if (document.getElementById("calPopup").classList.contains("open")) renderCalendar();
+}
+ 
+function rowHasInProgress(taskName) {
+    return days.some(d =>
+        hours.some(hh => {
+            let key = currentDate + "|" + taskName + "|" + d + "|" + hh;
+            return data[key] && data[key].status === "inprogress";
+        })
+    );
+}
+ 
+// ── CALENDRIER ───────────────────────────────────────────────────
+let calViewYear, calViewMonth;
+ 
+function initCalView() {
+    let parts    = currentDate.split("-");
+    calViewYear  = parseInt(parts[0]);
+    calViewMonth = parseInt(parts[1]) - 1;
+}
+ 
+function toggleCalendar() {
+    let popup = document.getElementById("calPopup");
+    popup.classList.toggle("open");
+    if (popup.classList.contains("open")) renderCalendar();
+}
+ 
+document.addEventListener("click", function(e) {
+    let wrapper = document.getElementById("calWrapper");
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById("calPopup").classList.remove("open");
+    }
+});
+ 
+function calPrevMonth(e) {
+    e.stopPropagation();
+    calViewMonth--;
+    if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+    renderCalendar();
+}
+function calNextMonth(e) {
+    e.stopPropagation();
+    calViewMonth++;
+    if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+    renderCalendar();
+}
+ 
+function renderCalendar() {
+    const mNames = ["Janvier","Février","Mars","Avril","Mai","Juin",
+                    "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+    const dNames = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+ 
+    document.getElementById("calMonthLabel").textContent = mNames[calViewMonth] + " " + calViewYear;
+ 
+    let grid = document.getElementById("calGrid");
+    grid.innerHTML = "";
+ 
+    dNames.forEach(d => {
+        let el = document.createElement("div");
+        el.className = "cal-day-header";
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+ 
+    let firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+    firstDay = (firstDay === 0) ? 6 : firstDay - 1;
+ 
+    let daysInMonth     = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+    let daysInPrevMonth = new Date(calViewYear, calViewMonth, 0).getDate();
+    let today           = new Date().toISOString().split('T')[0];
+ 
+    for (let i = firstDay - 1; i >= 0; i--) {
+        let el = document.createElement("div");
+        el.className = "cal-day other-month empty";
+        el.textContent = daysInPrevMonth - i;
+        grid.appendChild(el);
+    }
+ 
+    for (let d = 1; d <= daysInMonth; d++) {
+        let mm      = String(calViewMonth + 1).padStart(2, '0');
+        let dd      = String(d).padStart(2, '0');
+        let dateStr = calViewYear + "-" + mm + "-" + dd;
+ 
+        let el = document.createElement("div");
+        el.className = "cal-day";
+        el.textContent = d;
+ 
+        if (dateStr === today)          el.classList.add("today");
+        if (dateStr === currentDate)    el.classList.add("selected");
+        if (dateHasInProgress(dateStr)) el.classList.add("has-inprogress");
+ 
+        el.addEventListener("click", function(e) {
+            e.stopPropagation();
+            currentDate = dateStr;
+            localStorage.setItem("planDate", currentDate);
+            updateCalLabel();
+            loadTable();
+            renderCalendar();
+            document.getElementById("calPopup").classList.remove("open");
+        });
+        grid.appendChild(el);
+    }
+ 
+    let total     = firstDay + daysInMonth;
+    let remaining = (7 - (total % 7)) % 7;
+    for (let d = 1; d <= remaining; d++) {
+        let el = document.createElement("div");
+        el.className = "cal-day other-month empty";
+        el.textContent = d;
+        grid.appendChild(el);
+    }
+}
+ 
+function dateHasInProgress(dateStr) {
+    return Object.keys(data).some(k =>
+        k.startsWith(dateStr + "|") && data[k].status === "inprogress"
+    );
+}
+ 
+function updateCalLabel() {
+    let p = currentDate.split("-");
+    document.getElementById("calLabel").textContent = p[2] + "/" + p[1] + "/" + p[0];
+}
+ 
+// ── HEADER TABLE ─────────────────────────────────────────────────
+function loadHeader() {
+    let h = "<tr><th rowspan='2'>Tâche</th>";
+    days.forEach(d => { h += "<th colspan='" + hours.length + "'>" + d + "</th>"; });
+    h += "</tr><tr>";
+    hours.forEach(hh => { h += "<th>" + hh + "</th>"; });
+    h += "</tr>";
+    document.getElementById("thead").innerHTML = h;
+}
+ 
+// ── TABLEAU ───────────────────────────────────────────────────────
+function loadTable() {
+    let body = "";
+ 
+    tasks.forEach(function(t, idx) {
+        let hasIP = rowHasInProgress(t.name);
+ 
+        body += "<tr><td class='task'><div class='task-cell'>";
+        body += "<span class='task-name'>" + t.name + "</span>";
+        body += "<button class='btn-validate-row'" + (hasIP ? "" : " disabled") +
+                " onclick='validateRow(" + idx + ")'>✔ Valider</button>";
+        body += "<button class='btn-delete-task' onclick='deleteTask(" + idx + ")'>🗑</button>";
+        body += "</div></td>";
+ 
+        days.forEach(function(d) {
+            hours.forEach(function(hh, hidx) {
+                let key = currentDate + "|" + t.name + "|" + d + "|" + hh;
+                if (!data[key]) {
+                    data[key] = { status: "pending", id: "" };
+                }
+                let c = data[key];
+                body += "<td class='" + c.status + "' onclick=\"clickCell('" + key.replace(/'/g,"\\'") + "')\">" + (c.id || "") + "</td>";
+            });
+        });
+ 
+        body += "</tr>";
+    });
+ 
+    document.getElementById("tbody").innerHTML = body;
+}
+ 
+// ── CLICK CELLULE ────────────────────────────────────────────────
+function clickCell(key) {
+    let c = data[key] || { status: "pending", id: "" };
+ 
+    if (c.status === "pending") {
+        data[key] = { status: "inprogress", id: "⏳" };
+    } else if (c.status === "inprogress") {
+        let id = prompt("ID opérateur :");
+        if (id) data[key] = { status: "done", id: "✔ " + id };
+    } else if (c.status === "done") {
+        if (confirm("Annuler cette validation ?")) {
+            data[key] = { status: "pending", id: "" };
+        }
+    }
+ 
+    saveData();
+    loadTable();
+    if (document.getElementById("calPopup").classList.contains("open")) renderCalendar();
+}
+ 
+// ── RESET ────────────────────────────────────────────────────────
+function resetPage() {
+    if (confirm("Réinitialiser toutes les données du planning ?")) {
+        localStorage.removeItem("planData");
+        localStorage.removeItem("tasks");
+        localStorage.removeItem("planDate");
+        location.reload();
+    }
+}
+ 
+function openDashboard() {
+    window.open("dash.planif.html", "_blank");
+}
+ 
+// ── INIT ─────────────────────────────────────────────────────────
+initCalView();
+updateCalLabel();
+loadHeader();
+loadTable();
+ 
+</script>
+</body>
+</html>

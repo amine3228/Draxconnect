@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DraxConnect | Smart Factory</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+body{
+  background:#05070c;
+  color:white;
+  overflow-x:hidden;
+}
+
+/* NAV */
+nav{
+  position:fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  padding:18px 70px;
+  background:rgba(0,0,0,0.3);
+  backdrop-filter:blur(18px);
+  z-index:1000;
+}
+
+nav a{
+  color:#aaa;
+  text-decoration:none;
+  margin-left:25px;
+  font-size:14px;
+}
+nav a:hover{color:white;}
+
+/* HERO */
+.hero{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  position:relative;
+}
+
+.hero video{
+  position:absolute;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:brightness(0.45);
+}
+
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle, rgba(0,0,0,0.2), #05070c);
+}
+
+.hero-content{
+  position:relative;
+  z-index:2;
+  max-width:900px;
+  opacity:0;
+  transform:translateY(40px);
+}
+
+.hero h1{
+  font-size:4rem;
+  font-weight:600;
+}
+
+.hero p{
+  margin-top:15px;
+  color:#aaa;
+}
+
+.btn{
+  margin-top:30px;
+  padding:12px 26px;
+  border:none;
+  border-radius:30px;
+  background:#4f8cff;
+  color:white;
+  cursor:pointer;
+}
+
+/* DASHBOARD */
+.dashboard{
+  padding:120px 80px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:20px;
+}
+
+.kpi{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:25px;
+  border-radius:16px;
+  backdrop-filter:blur(10px);
+  transform:translateY(40px);
+  opacity:0;
+}
+
+.kpi h3{
+  font-size:14px;
+  color:#aaa;
+}
+
+.kpi p{
+  font-size:28px;
+  margin-top:10px;
+  font-weight:600;
+}
+
+/* SERVICES */
+.service{
+  height:100vh;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  overflow:hidden;
+}
+
+.service img{
+  position:absolute;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:brightness(0.35);
+  transform:scale(1.1);
+}
+
+.service-overlay{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle, rgba(0,0,0,0.2), #05070c);
+}
+
+.service-content{
+  position:relative;
+  z-index:2;
+  max-width:800px;
+  opacity:0;
+  transform:translateY(50px);
+}
+
+.service h2{
+  font-size:3rem;
+  font-weight:600;
+}
+
+.service p{
+  margin-top:15px;
+  color:#bbb;
+}
+
+/* CTA */
+.cta{
+  text-align:center;
+  padding:120px 40px;
+}
+
+
+.group-content{
+  max-width:900px;
+  text-align:left;
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* TITRE STYLE APPLE */
+.group-content h2{
+  font-size:3rem;
+  font-weight:600;
+  letter-spacing:-1px;
+  margin-bottom:30px;
+  color:#ffffff;
+}
+
+/* PARAGRAPHES LUXE */
+.group-content p{
+  font-size:16px;
+  line-height:1.9;
+  color:#b8c0d9;
+  margin-bottom:18px;
+
+  /* effet premium */
+  max-width:800px;
+}
+
+/* highlight mots importants */
+.group-content strong{
+  color:#ffffff;
+  font-weight:500;
+}
+
+/* petit effet “glass” autour du bloc */
+.group-content{
+  padding:40px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  background:rgba(255,255,255,0.03);
+  backdrop-filter:blur(12px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.group{
+  padding:140px 80px;
+  min-height: 100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+.group,
+.dashboard,
+.service{
+  scroll-snap-align:start;
+}
+  /* 🔥 IMAGE BACKGROUND */
+  background:url("images/drax123.jpg") center/cover no-repeat;
+
+  position:relative;
+}
+.group::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(5,7,12,0.75);
+  backdrop-filter:blur(2px);
+}
+.group-content{
+  position:relative;
+  z-index:2;
+
+  max-width:900px;
+  text-align:left;
+
+  padding:40px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(12px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+
+  opacity:1;
+  transform:translateY(0);
+  transition:1s ease;
+}
+/* TITRE STYLE APPLE */
+.group-content h2{
+  font-size:3rem;
+  font-weight:600;
+  letter-spacing:-1px;
+  margin-bottom:30px;
+  color:#ffffff;
+}
+
+/* PARAGRAPHES LUXE */
+.group-content p{
+  font-size:16px;
+  line-height:1.9;
+  color:#b8c0d9;
+  margin-bottom:18px;
+
+  /* effet premium */
+  max-width:800px;
+}
+
+/* highlight mots importants */
+.group-content strong{
+  color:#ffffff;
+  font-weight:500;
+}
+
+/* petit effet “glass” autour du bloc */
+.group-content{
+  padding:40px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  background:rgba(255,255,255,0.03);
+  backdrop-filter:blur(12px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.dashboard{
+  padding:120px 80px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:25px;
+  background:#070b16;
+}
+
+.kpi-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  padding:20px;
+  backdrop-filter:blur(15px);
+  transform:translateY(40px);
+  opacity:0;
+}
+
+.kpi-card h3{
+  margin-bottom:15px;
+  color:#aaa;
+}
+
+.services-hero{
+  height:60vh;
+  position:relative;
+
+  /* 🔥 BACKGROUND IMAGE */
+  background:url("images/drax123.jpg") center/cover no-repeat;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+/* overlay sombre style Tesla */
+.services-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(5,7,12,0.65);
+}
+
+/* texte au-dessus */
+.services-content{
+  position:relative;
+  z-index:2;
+  color:white;
+
+  opacity:0;
+  transform:translateY(30px);
+  transition:1s ease;
+}
+
+.services-content h2{
+  font-size:3rem;
+  font-weight:600;
+  letter-spacing:-1px;
+}
+
+.services-content p{
+  margin-top:10px;
+  color:#aaa;
+}
+
+/* animation show */
+.services-content.show{
+  opacity:1;
+  transform:translateY(0);
+}
+.dashboard-btn.secondary{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.dashboard-btn.secondary:hover{
+  background: rgba(255,255,255,0.12);
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h2>Draxlmaier</h2>
+  <div>
+    <a href="Histoire"></a>
+    <a href="#services">Services</a>
+    <a href="press-photos.html" class="btn">Press Photo</a>
+</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <video autoplay muted loop>
+    <source src="video/drax-vid.mp4">
+  </video>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <h1>DraxConnect Industrial </h1>
+    <p>Real-time factory intelligence system</p>
+
+    <a href="brands.html">
+      <button class="btn">Go to Brands</button>
+    </a>
+  </div>
+</section>
+<section class="group">
+
+  <div class="group-content">
+
+    <h2>Draxlmaier Group</h2>
+<p>
+Draxlmaier Group est un fournisseur mondial de systèmes électriques et solutions automobiles premium,
+spécialisé dans les faisceaux électriques, les systèmes embarqués et les technologies industrielles avancées.
+</p>
+
+<p>
+Le site de El Jem (Tunisie), fondé en 2011, fait partie du réseau de production international du groupe
+et contribue à l’approvisionnement de constructeurs automobiles de référence tels que BMW, Mercedes-Benz,
+Volkswagen et Škoda.
+</p>
+
+<p>
+Grâce à l’intégration des technologies Industry 4.0 et des systèmes MES, Draxlmaier développe une
+production intelligente basée sur la qualité, la performance et l’innovation continue.
+</p>
+
+  </div>
+
+</section>
+<section class="services-hero">
+
+  <div class="services-content">
+    <h2>Nos Services</h2>
+    <p>Une chaîne industrielle intelligente connectée en temps réel</p>
+  </div>
+</section>
+
+<section class="dashboard">
+  <div class="kpi-card">
+    <h3>Production</h3>
+    <canvas id="prodChart"></canvas>
+  </div>
+
+  <div class="kpi-card">
+    <h3>Qualité</h3>
+    <canvas id="qualChart"></canvas>
+  </div>
+
+  <div class="kpi-card">
+    <h3>Logistique</h3>
+    <canvas id="logChart"></canvas>
+  </div>
+
+  <div class="kpi-card">
+    <h3>TPM</h3>
+    <canvas id="tpmChart"></canvas>
+  </div>
+
+</section>
+
+<!-- SERVICES -->
+
+<section class="service">
+  <img src="images/imgdrax2.jpg">
+  <div class="service-overlay"></div>
+  <div class="service-content">
+    <h2>Production</h2>
+    <p>Optimisation et suivi en temps réel des lignes de production.</p>
+  </div>
+</section>
+
+<section class="service">
+  <img src="images/qualité.jpg">
+  <div class="service-overlay"></div>
+  <div class="service-content">
+    <h2>Qualité</h2>
+    <p>Détection intelligente des défauts et contrôle avancé.</p>
+  </div>
+</section>
+
+<section class="service">
+  <img src="images/logistique.jpg">
+  <div class="service-overlay"></div>
+  <div class="service-content">
+    <h2>Logistique</h2>
+    <p>Gestion optimisée des flux industriels.</p>
+  </div>
+</section>
+
+<section class="service">
+  <img src="images/imgdrax1.jpg">
+  <div class="service-overlay"></div>
+  <div class="service-content">
+    <h2>TPM</h2>
+    <p>Maintenance et performance globale des équipements.</p>
+  </div>
+</section>
+
+<!-- GSAP ANIMATION -->
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* HERO */
+gsap.to(".hero-content",{
+  opacity:1,
+  y:0,
+  duration:1.5
+});
+
+/* KPI */
+gsap.to(".kpi",{
+  scrollTrigger:{
+    trigger:".dashboard",
+    start:"top 80%"
+  },
+  opacity:1,
+  y:0,
+  stagger:0.2,
+  duration:1
+});
+
+/* SERVICES */
+document.querySelectorAll(".service-content").forEach((el)=>{
+  gsap.to(el,{
+    scrollTrigger:{
+      trigger:el,
+      start:"top 80%"
+    },
+    opacity:1,
+    y:0,
+    duration:1
+  });
+});
+
+/* IMAGE ZOOM */
+document.querySelectorAll(".service img").forEach((img)=>{
+  gsap.to(img,{
+    scrollTrigger:{
+      trigger:img,
+      scrub:true
+    },
+    scale:1.2
+  });
+});
+</script>
+
+</body>
+</html>

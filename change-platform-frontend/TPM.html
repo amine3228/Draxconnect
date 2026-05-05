@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPM Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Inter;margin:0;background:#f5f7fa;}
+header{background:#0d1b2a;color:white;padding:25px;text-align:center;}
+section{padding:30px;}
+
+#table-controls{margin-bottom:20px;text-align:center;}
+button,input{padding:10px;margin:5px;border-radius:8px;border:none;}
+
+button{background:#0d1b2a;color:white;cursor:pointer;}
+
+table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #ccc;}
+th{background:#0d1b2a;color:white;}
+
+.A{background:#2ecc71;color:white;}
+.B{background:#f39c12;color:white;}
+.C{background:#e74c3c;color:white;}
+
+#chartContainer{margin-top:30px;background:white;padding:20px;border-radius:10px;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Dashboard TPM</h1>
+</header>
+
+<section>
+
+<div id="table-controls">
+<button onclick="addRow()">+ Ajouter</button>
+<button onclick="exportTable()">Exporter Excel</button>
+<input type="file" id="importFile">
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Master</th>
+<th>Avis</th>
+<th>Description</th>
+<th>Risque Initial</th>
+<th>Risque Actuel</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<div id="chartContainer">
+<canvas id="chart"></canvas>
+</div>
+
+</section>
+
+<script>
+
+// ================= DATA =================
+let data = [];
+
+
+// ================= COLOR =================
+function getColor(val){
+    if(val=="A") return "A";
+    if(val=="B") return "B";
+    return "C";
+}
+
+
+// ================= LOAD =================
+function load(){
+    let tbody = document.getElementById("tbody");
+    tbody.innerHTML="";
+
+    data.forEach((d,i)=>{
+        let tr = document.createElement("tr");
+
+        tr.innerHTML=`
+        <td>${d.master}</td>
+        <td>${d.avis}</td>
+        <td>${d.desc}</td>
+
+        <td class="${getColor(d.risqueI)}">${d.risqueI}</td>
+        <td class="${getColor(d.risqueA)}">${d.risqueA}</td>
+
+        <td><button onclick="deleteRow(${i})">❌</button></td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+
+    updateChart();
+}
+
+
+// ================= ADD =================
+function addRow(){
+    data.push({
+        master:"TEST",
+        avis:"TEST",
+        desc:"TEST",
+        risqueI:"A",
+        risqueA:"B"
+    });
+    load();
+}
+
+
+// ================= DELETE =================
+function deleteRow(i){
+    data.splice(i,1);
+    load();
+}
+
+
+// ================= EXPORT =================
+function exportTable(){
+    let ws = XLSX.utils.json_to_sheet(data);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "TPM");
+    XLSX.writeFile(wb, "TPM.xlsx");
+}
+
+
+// ================= IMPORT (WORKING 100%) =================
+document.getElementById("importFile").addEventListener("change", function(e){
+
+    let file = e.target.files[0];
+    if(!file){
+        alert("Choisir un fichier !");
+        return;
+    }
+
+    let reader = new FileReader();
+
+    reader.onload = function(evt){
+
+        let workbook = XLSX.read(evt.target.result, {type:"binary"});
+        let sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        let json = XLSX.utils.sheet_to_json(sheet);
+
+        console.log(json); // 🔥 IMPORTANT
+
+        if(json.length === 0){
+            alert("Fichier vide !");
+            return;
+        }
+
+        data = [];
+
+        json.forEach(row=>{
+            data.push({
+                master: row["Master"] || "",
+                avis: row["Avis de chgmt"] || "",
+                desc: row["Description"] || "",
+                risqueI: (row["Risque initial"] || "C").toUpperCase(),
+                risqueA: (row["Risque actuel"] || "C").toUpperCase()
+            });
+        });
+
+        load();
+
+        alert("✅ Import réussi !");
+    };
+
+    reader.readAsBinaryString(file);
+});
+
+
+// ================= CHART =================
+let ctx = document.getElementById("chart").getContext("2d");
+
+let chart = new Chart(ctx,{
+type:"bar",
+data:{
+labels:["A","B","C"],
+datasets:[{
+label:"Risque",
+data:[0,0,0],
+backgroundColor:["#2ecc71","#f39c12","#e74c3c"]
+}]
+}
+});
+
+function updateChart(){
+    chart.data.datasets[0].data = [
+        data.filter(d=>d.risqueA=="A").length,
+        data.filter(d=>d.risqueA=="B").length,
+        data.filter(d=>d.risqueA=="C").length
+    ];
+    chart.update();
+}
+
+</script>
+
+</body>
+</html>

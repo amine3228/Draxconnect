@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services | Draxlmaier</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background: radial-gradient(circle at top,#0b1220,#05070c);
+    color:white;
+    min-height:100vh;
+}
+
+/* TOP BAR */
+.top-bar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    background:rgba(5,7,12,0.6);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    z-index:1000;
+}
+
+.top-bar img{
+    height:40px;
+}
+
+/* HEADER */
+header{
+    text-align:center;
+    padding:130px 20px 60px;
+}
+
+header h1{
+    font-size:2.8rem;
+    font-weight:700;
+    letter-spacing:-1px;
+}
+
+header p{
+    margin-top:12px;
+    color:#b0b0b0;
+    max-width:700px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+/* GRID */
+.services{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:25px;
+    max-width:1100px;
+    margin:40px auto;
+    padding:0 20px;
+}
+
+/* CARD MODERNE */
+.card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px;
+    padding:25px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.4s;
+    backdrop-filter:blur(12px);
+    position:relative;
+    overflow:hidden;
+}
+
+.card::before{
+    content:"";
+    position:absolute;
+    top:-50%;
+    left:-50%;
+    width:200%;
+    height:200%;
+    background:radial-gradient(circle,rgba(79,140,255,0.15),transparent);
+    opacity:0;
+    transition:0.4s;
+}
+
+.card:hover::before{
+    opacity:1;
+}
+
+.card:hover{
+    transform:translateY(-10px) scale(1.03);
+    border-color:rgba(79,140,255,0.4);
+}
+
+.card img{
+    width:90px;
+    height:90px;
+    object-fit:cover;
+    border-radius:14px;
+    margin-bottom:15px;
+    transition:0.3s;
+}
+
+.card:hover img{
+    transform:scale(1.1);
+}
+
+.card h3{
+    font-size:1.3rem;
+    margin-bottom:10px;
+    color:#eaeaea;
+}
+
+.card p{
+    font-size:0.95rem;
+    color:#b0b0b0;
+}
+
+/* BUTTONS */
+.actions{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    padding:12px 22px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s;
+}
+
+.btn-primary{
+    background:linear-gradient(135deg,#4f8cff,#6a5cff);
+    color:white;
+}
+
+.btn-primary:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(79,140,255,0.3);
+}
+
+.btn-dark{
+    background:rgba(255,255,255,0.06);
+    color:white;
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.btn-dark:hover{
+    background:rgba(255,255,255,0.12);
+}
+
+/* BACK */
+.back-btn{
+    display:block;
+    text-align:center;
+    margin:60px auto 40px;
+    color:#aaa;
+    text-decoration:none;
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <img src="images/logo drax.jpg alt="logo">
+</div>
+
+<header>
+    <h1 id="brandTitle">Nos Services</h1>
+    <p id="brandDesc">Sélectionnez un service pour en savoir plus</p>
+
+    <div class="actions">
+        <button class="btn btn-primary" onclick="openPlanning()">📅 Planification</button>
+        <button class="btn btn-dark" onclick="goDashboard()">📊 Dashboard</button>
+    </div>
+</header>
+
+<div class="services">
+
+    <div class="card" onclick="goQualite()">
+        <img src="images/qualité.jpg">
+        <h3>Qualité</h3>
+        <p>Assurer la conformité des produits et le suivi des standards industriels.</p>
+    </div>
+
+    <div class="card" onclick="location.href='logistique.html'">
+        <img src="images/logistique.jpg">
+        <h3>Logistique</h3>
+        <p>Optimisation des flux de matériaux et coordination des stocks.</p>
+    </div>
+
+    <div class="card" onclick="location.href='login.html?service=tpm'">
+        <img src="images/imgdrax2.jpg">
+        <h3>TPM</h3>
+        <p>Maintenance et support technique pour les installations industrielles.</p>
+    </div>
+
+    <div class="card" onclick="location.href='login.html?service=technique'">
+        <img src="images/imgdrax1.jpg">
+        <h3>Technique</h3>
+        <p>Gestion de la production et amélioration continue des processus.</p>
+    </div>
+
+</div>
+
+<a href="brands.html" class="back-btn">⬅ Retour aux marques</a>
+
+<script>
+const brand = localStorage.getItem("brand");
+
+const brandsData = {
+    mercedes:{title:"Services Mercedes",desc:"Optimisation industrielle spécifique aux standards Mercedes."},
+    bmw:{title:"Services BMW",desc:"Solutions techniques BMW pour performance et excellence."},
+    volkswagen:{title:"Services Volkswagen",desc:"Gestion industrielle Volkswagen : efficacité et production."},
+    skoda:{title:"Services Skoda",desc:"Services Skoda : optimisation des coûts et qualité."}
+};
+
+if(brand && brandsData[brand]){
+    document.getElementById("brandTitle").innerText = brandsData[brand].title;
+    document.getElementById("brandDesc").innerText = brandsData[brand].desc;
+}
+
+function openPlanning(){
+    window.location.href="planning.html";
+}
+
+function goQualite(){
+    window.location.href="qualite.html";
+}
+
+function goDashboard(){
+    window.location.href="dashboard.html";
+}
+</script>
+
+</body>
+</html>
